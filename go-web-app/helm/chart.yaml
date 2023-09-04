@@ -1,0 +1,5 @@
+# Chart.yaml
+apiVersion: v2
+name: go-web-app
+description: A Helm chart for deploying the Go web app
+version: 1.0.0

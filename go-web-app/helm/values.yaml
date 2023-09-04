@@ -1,0 +1,13 @@
+# values.yaml
+image:
+  repository: go-web-app
+  tag: latest
+
+service:
+  name: go-web-app
+  port: 8080
+
+autoscaling:
+  replicas:
+    min: 1
+    max: 2

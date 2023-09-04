@@ -1,0 +1,5 @@
+# Chart.yaml
+apiVersion: v2
+name: nodejs-web-app
+description: A Helm chart for deploying the Node.js web app
+version: 1.0.0

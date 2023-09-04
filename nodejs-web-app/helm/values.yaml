@@ -1,0 +1,13 @@
+# values.yaml
+image:
+  repository: nodejs-web-app
+  tag: latest
+
+service:
+  name: nodejs-web-app
+  port: 3000
+
+autoscaling:
+  replicas:
+    min: 1
+    max: 2
