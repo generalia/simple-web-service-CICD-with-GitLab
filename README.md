@@ -50,12 +50,3 @@ To use the CI/CD pipeline, follow these steps:
 4. **Deploy:** Finally, the "deploy" job will use Helm to deploy the service to a Kubernetes cluster, make sure to configure the Helm manifest accordingly.
 
 Additionally, the pipeline could be further improved by providing image-scan, job report for each stage, chain pipeline,  and many more depending on business needs.
-
-## Live preview
-
-For simple live preview, here is both services that deployed as docker container on my personal site that uses an EC2 instance where the image is stored pulled from ECR:
-
-```
-curl service.generalia.tech:3000/mynode
-curl service.generalia.tech:8080/mygo
-```
