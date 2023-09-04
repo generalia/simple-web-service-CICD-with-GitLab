@@ -1,0 +1,81 @@
+stages:
+  - build-test
+  - push
+  - deploy
+
+after_script:
+  - rm -rf /tmp/pipelines/${CI_JOB_ID}
+
+.parse_envar_template: &parse_envar |
+  export TARGET=${TARGET}
+  export DELIMITER=__
+  export ENVIRONMENTS=$(env | grep "^${TARGET}" | awk -F "${DELIMITER}" '{print $1}' | sort | uniq)
+
+.build_test_template: &build_test |
+  export BUILD_DATE=$(date -u -Iseconds)
+  make clean || true
+  make build
+  make test 
+
+build_test:
+  stage: build-test
+  tags:
+    - runner-autoscaler
+  script:
+    - cd ${WORKDIR}
+    - *build_test
+  except:
+    variables:
+      - $REPO_BRANCH == "dev"
+      - $PUSH_IMAGE == "true"
+     
+push_build:
+  stage: build-test
+  tags:
+    - runner-autoscaler
+  script:
+    - *parse_envar
+    - *build_test
+    - mkdir -p ${CI_PROJECT_DIR}/images
+    - docker save ${SERVICE_NAME}:latest > ${CI_PROJECT_DIR}/images/${SERVICE_NAME}:${VERSION}.tar
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/images
+    expire_in: 1h
+  only:
+    variables:
+      - $REPO_BRANCH == "main"
+      - $PUSH_IMAGE == "true"
+      
+push:
+  stage: push
+  tags:
+    - runner-autoscaler
+  before_script:
+    - bash ./scripts/prerun.sh
+    - bash ./scripts/init.sh
+  script:
+    - *parse_envar
+    - docker load -i ${CI_PROJECT_DIR}/images/${SERVICE_NAME}:${VERSION}.tar
+    - bash ./scripts/push.sh
+  only:
+    variables:
+      - $REPO_BRANCH == "main"
+      - $PUSH_IMAGE == "true"
+  dependencies:
+    - push_build
+
+deploy:
+  stage: deploy
+  tags:
+    - runner-autoscaler
+  script:
+    - *parse_envar
+    - bash ./scripts/check_image.sh
+    - bash ./scripts/deploy.sh
+  only:
+    variables:
+      - $TAGGED == "true"
+      - $DEPLOY == "true"
+  dependencies:
+    - push
